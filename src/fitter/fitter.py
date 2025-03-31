@@ -18,10 +18,9 @@
 .. sectionauthor:: Thomas Cokelaer, Aug 2014-2020
 
 """
+
 import contextlib
-import sys
-import threading
-from datetime import datetime
+import multiprocessing
 
 import joblib
 import numpy as np
@@ -33,9 +32,8 @@ from loguru import logger
 from scipy.stats import entropy as kl_div
 from scipy.stats import kstest
 from tqdm import tqdm
-import multiprocessing
 
-__all__ = ["get_common_distributions", "get_distributions", "Fitter"]
+__all__ = ["Fitter", "get_common_distributions", "get_distributions"]
 
 
 # A solution to wrap joblib parallel call in tqdm from
@@ -44,8 +42,8 @@ __all__ = ["get_common_distributions", "get_distributions", "Fitter"]
 @contextlib.contextmanager
 def tqdm_joblib(*args, **kwargs):
     """Context manager to patch joblib to report into tqdm progress bar
-    given as argument"""
-
+    given as argument
+    """
     tqdm_object = tqdm(*args, **kwargs)
 
     class TqdmBatchCompletionCallback(joblib.parallel.BatchCompletionCallBack):
@@ -92,7 +90,7 @@ def get_common_distributions():
     return common
 
 
-class Fitter(object):
+class Fitter:
     """Fit a data sample to known distributions
 
     A naive approach often performed to figure out the undelying distribution that
@@ -250,9 +248,7 @@ class Fitter(object):
         return self._xmin
 
     def _set_xmin(self, value):
-        if value == None:
-            value = self._alldata.min()
-        elif value < self._alldata.min():
+        if value == None or value < self._alldata.min():
             value = self._alldata.min()
         self._xmin = value
         self._trim_data()
@@ -264,9 +260,7 @@ class Fitter(object):
         return self._xmax
 
     def _set_xmax(self, value):
-        if value == None:
-            value = self._alldata.max()
-        elif value > self._alldata.max():
+        if value == None or value > self._alldata.max():
             value = self._alldata.max()
         self._xmax = value
         self._trim_data()
@@ -280,7 +274,6 @@ class Fitter(object):
 
     def hist(self):
         """Draw normed histogram of the data using :attr:`bins`
-
 
         .. plot::
 
@@ -330,11 +323,11 @@ class Fitter(object):
             dist_fitted = dist(*param)
             ks_stat, ks_pval = kstest(data, dist_fitted.cdf)
 
-            logger.info("Fitted {} distribution with error={})".format(distribution, round(sq_error, 6)))
+            logger.info(f"Fitted {distribution} distribution with error={round(sq_error, 6)})")
 
             return distribution, (param, pdf_fitted, sq_error, aic, bic, kullback_leibler, ks_stat, ks_pval)
         except Exception:  # pragma: no cover
-            logger.warning("SKIPPED {} distribution (taking more than {} seconds)".format(distribution, timeout))
+            logger.warning(f"SKIPPED {distribution} distribution (taking more than {timeout} seconds)")
 
             return distribution, None
 
@@ -354,9 +347,7 @@ class Fitter(object):
         """
         N = len(self.distributions)
         with tqdm_joblib(desc=f"Fitting {N} distributions", total=N, disable=not progress) as progress_bar:
-            results = Parallel(n_jobs=max_workers, prefer=prefer)(
-                delayed(Fitter._fit_single_distribution)(dist, self._data, self.x, self.y, self.timeout) for dist in self.distributions
-            )
+            results = Parallel(n_jobs=max_workers, prefer=prefer)(delayed(Fitter._fit_single_distribution)(dist, self._data, self.x, self.y, self.timeout) for dist in self.distributions)
 
         for distribution, values in results:
             if values is not None:
@@ -384,7 +375,7 @@ class Fitter(object):
                 "kl_div": self._kldiv,
                 "ks_statistic": self._ks_stat,
                 "ks_pvalue": self._ks_pval,
-            }
+            },
         )
         self.df_errors.sort_index(inplace=True)
 
@@ -398,8 +389,7 @@ class Fitter(object):
 
         """
         assert Nbest > 0
-        if Nbest > len(self.distributions):
-            Nbest = len(self.distributions)
+        Nbest = min(Nbest, len(self.distributions))
 
         if isinstance(names, list):
             for name in names:
@@ -433,7 +423,7 @@ class Fitter(object):
         param_names = (distribution.shapes + ", loc, scale").split(", ") if distribution.shapes else ["loc", "scale"]
 
         param_dict = {}
-        for d_key, d_val in zip(param_names, params):
+        for d_key, d_val in zip(param_names, params, strict=False):
             param_dict[d_key] = d_val
         return {name: param_dict}
 

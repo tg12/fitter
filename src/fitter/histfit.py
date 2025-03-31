@@ -1,7 +1,6 @@
-import scipy.stats
 import pylab
-from pylab import mean, sqrt, std
-
+import scipy.stats
+from pylab import mean, sqrt
 
 __all__ = ["HistFit"]
 
@@ -62,7 +61,6 @@ class HistFit:
             hist function and bins may be provided.
 
         """
-
         self.data = data
         if data:
             Y, X, _ = pylab.hist(self.data, bins=bins, density=True)

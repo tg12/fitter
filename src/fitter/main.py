@@ -15,13 +15,9 @@
 #
 ##############################################################################
 """.. rubric:: Standalone application"""
+
 import csv
-import glob
-import json
-import os
-import subprocess
 import sys
-import textwrap
 from pathlib import Path
 
 import rich_click as click
@@ -44,23 +40,29 @@ click.rich_click.FOOTER_TEXT = "Authors: Thomas Cokelaer -- Documentation: http:
 @click.group(context_settings=CONTEXT_SETTINGS)
 @click.version_option(version=version)
 def main():  # pragma: no cover
-    """fitter can fit your data using Scipy distributions
+    """Fitter can fit your data using Scipy distributions
 
     Example:
-
         fitter fitdist data.csv
 
     """
-    pass
 
 
 @main.command()
 @click.argument("filename", type=click.STRING)
 @click.option(
-    "--column-number", type=click.INT, default=1, show_default=True, help="data column to use (first column by default)"
+    "--column-number",
+    type=click.INT,
+    default=1,
+    show_default=True,
+    help="data column to use (first column by default)",
 )
 @click.option(
-    "--delimiter", type=click.STRING, default=",", show_default=True, help="column delimiter (comma by default)"
+    "--delimiter",
+    type=click.STRING,
+    default=",",
+    show_default=True,
+    help="column delimiter (comma by default)",
 )
 @click.option(
     "--distributions",
@@ -74,11 +76,11 @@ def main():  # pragma: no cover
 @click.option("--verbose/--no-verbose", default=True, show_default=True)
 @click.option("--output-image", type=click.STRING, default="fitter.png", show_default=True)
 def fitdist(**kwargs):
-    """fit distribution"""
+    """Fit distribution"""
     from pylab import savefig
 
     col = kwargs["column_number"]
-    with open(kwargs["filename"], "r") as csvfile:
+    with open(kwargs["filename"]) as csvfile:
         data = csv.reader(csvfile, delimiter=kwargs["delimiter"])
         data = [float(x[col - 1]) for x in data]
 
