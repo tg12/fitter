@@ -32,6 +32,7 @@ from loguru import logger
 from scipy.stats import entropy as kl_div
 from scipy.stats import kstest
 from tqdm import tqdm
+from numba import jit, prange
 
 __all__ = ["Fitter", "get_common_distributions", "get_distributions"]
 

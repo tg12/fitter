@@ -1,3 +1,4 @@
+import numpy as np
 import pylab
 import scipy.stats
 from pylab import mean, sqrt
@@ -68,8 +69,8 @@ class HistFit:
             self.X = [(X[i] + X[i + 1]) / 2 for i in range(self.N)]
             self.Y = Y
             self.A = 1
-            self.guess_std = pylab.std(self.data)
-            self.guess_mean = pylab.mean(self.data)
+            self.guess_std = np.std(self.data)
+            self.guess_mean = np.mean(self.data)
             self.guess_amp = 1
         else:
             self.X = X
@@ -80,7 +81,7 @@ class HistFit:
 
             self.N = len(self.X)
             self.guess_mean = self.X[int(self.N / 2)]
-            self.guess_std = sqrt(sum((self.X - mean(self.X)) ** 2) / self.N) / (sqrt(2 * 3.14))
+            self.guess_std = sqrt(sum((self.X - np.mean(self.X)) ** 2) / self.N) / (sqrt(2 * 3.14))
             self.guess_amp = 1.0
 
         self.func = self._func_normal
@@ -127,7 +128,7 @@ class HistFit:
         pylab.figure(2)
         pylab.clf()
         # pylab.bar(self.X, self.Y, width=0.85, ec="k", alpha=0.5)
-        M = mean(self.fits, axis=0)
+        M = np.mean(self.fits, axis=0)
         S = pylab.std(self.fits, axis=0)
         pylab.fill_between(self.X, M - 3 * S, M + 3 * S, color="gray", alpha=0.5)
         pylab.fill_between(self.X, M - 2 * S, M + 2 * S, color="gray", alpha=0.5)
