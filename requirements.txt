@@ -1,0 +1,10 @@
+click>=8.1.8
+joblib>=1.4.2
+loguru>=0.7.3
+numpy>=2.2.4
+pandas>=2.2.3
+pytest>=8.3.5
+rich_click>=1.8.8
+scipy>=1.15.2
+Sphinx>=8.2.3
+tqdm>=4.67.1
