@@ -33,12 +33,9 @@ Installation
 
 ::
 
-    pip install fitter
-
-**fitter** is also available on **conda** (bioconda channel)::
-
-     conda install fitter
-
+    git clone https://github.com/tg12/fitter
+    cd fitter
+    pip install .
 
 Usage
 ##################
