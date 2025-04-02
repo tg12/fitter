@@ -29,10 +29,10 @@ import pylab
 import scipy.stats
 from joblib.parallel import Parallel, delayed
 from loguru import logger
+from numba import jit, prange
 from scipy.stats import entropy as kl_div
 from scipy.stats import kstest
 from tqdm import tqdm
-from numba import jit, prange
 
 __all__ = ["Fitter", "get_common_distributions", "get_distributions"]
 
@@ -45,37 +45,96 @@ def tqdm_joblib(*args, **kwargs):
     """Context manager to patch joblib to report into tqdm progress bar
     given as argument
     """
-    tqdm_object = tqdm(*args, **kwargs)
+    # Only create progress bar if not disabled (saves overhead when progress tracking is off)
+    disable = kwargs.get('disable', False)
+    tqdm_object = tqdm(*args, **kwargs) if not disable else None
 
-    class TqdmBatchCompletionCallback(joblib.parallel.BatchCompletionCallBack):
-        def __init__(self, *args, **kwargs):
-            super().__init__(*args, **kwargs)
+    if not disable:
+        class TqdmBatchCompletionCallback(joblib.parallel.BatchCompletionCallBack):
+            def __call__(self, *args, **kwargs):
+                tqdm_object.update(n=self.batch_size)
+                return super().__call__(*args, **kwargs)
 
-        def __call__(self, *args, **kwargs):
-            tqdm_object.update(n=self.batch_size)
-            return super().__call__(*args, **kwargs)
-
-    old_batch_callback = joblib.parallel.BatchCompletionCallBack
-    joblib.parallel.BatchCompletionCallBack = TqdmBatchCompletionCallback
+        old_batch_callback = joblib.parallel.BatchCompletionCallBack
+        joblib.parallel.BatchCompletionCallBack = TqdmBatchCompletionCallback
+    
     try:
         yield tqdm_object
     finally:
-        joblib.parallel.BatchCompletionCallBack = old_batch_callback
-        tqdm_object.close()
+        if not disable:
+            joblib.parallel.BatchCompletionCallBack = old_batch_callback
+            tqdm_object.close()
 
 
-def get_distributions():
+def get_distributions(verbose=False):
+    """
+    Discover all available distributions in scipy.stats that have a 'fit' method.
+    
+    Parameters:
+    -----------
+    verbose : bool
+        Whether to print discovery information during execution
+        
+    Returns:
+    --------
+    list
+        List of distribution names that have a 'fit' method
+    """
+    
+    
     distributions = []
-    for this in dir(scipy.stats):
-        if "fit" in eval("dir(scipy.stats." + this + ")"):
-            distributions.append(this)
+    skipped = []
+    
+    if verbose:
+        logger.info("Searching for distributions in scipy.stats with a 'fit' method...")
+    
+    for dist_name in dir(scipy.stats):
+        try:
+            # Skip private attributes, functions, and non-distribution objects
+            if dist_name.startswith('_') or dist_name in ['test', 'freeze']:
+                continue
+                
+            # Get the attribute
+            dist_obj = getattr(scipy.stats, dist_name)
+            
+            # Check if it's a distribution-like object with a fit method
+            if hasattr(dist_obj, 'fit'):
+                distributions.append(dist_name)
+                if verbose:
+                    logger.debug(f"Found distribution: {dist_name}")
+            else:
+                skipped.append(dist_name)
+                
+        except Exception as e:
+            # Safely handle any unexpected errors during discovery
+            skipped.append(dist_name)
+            if verbose:
+                logger.warning(f"Error checking {dist_name}: {str(e)}")
+    
+    if verbose:
+        logger.success(f"Found {len(distributions)} distributions with a 'fit' method")
+        
     return distributions
 
 
-def get_common_distributions():
-    distributions = get_distributions()
-    # to avoid error due to changes in scipy
-    common = [
+def get_common_distributions(verbose=False):
+    """
+    Get a curated list of common distributions that have a 'fit' method.
+    
+    Parameters:
+    -----------
+    verbose : bool
+        Whether to print information during execution
+        
+    Returns:
+    --------
+    list
+        List of common distribution names that have a 'fit' method
+    """
+    from loguru import logger
+
+    # Define the list of common distributions
+    common_distributions = [
         "cauchy",
         "chi2",
         "expon",
@@ -87,8 +146,20 @@ def get_common_distributions():
         "rayleigh",
         "uniform",
     ]
-    common = [x for x in common if x in distributions]
-    return common
+    
+    # Get all available distributions
+    all_distributions = get_distributions(verbose=False)
+    
+    # Filter to only include distributions that exist in scipy.stats
+    available_common = [dist for dist in common_distributions if dist in all_distributions]
+    
+    if verbose:
+        logger.info(f"Found {len(available_common)} common distributions out of {len(all_distributions)} total")
+        if len(available_common) < len(common_distributions):
+            missing = set(common_distributions) - set(available_common)
+            logger.warning(f"Missing common distributions: {', '.join(missing)}")
+        
+    return available_common
 
 
 class Fitter:
@@ -222,8 +293,7 @@ class Fitter:
         self._trim_data()
         self._update_data_pdf()
 
-        # Other attributes
-        self._init()
+        self._init() # Other attributes
 
     def _init(self):
         self.fitted_param = {}

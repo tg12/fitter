@@ -5,11 +5,11 @@ Discovers and runs all tests in the current directory
 Supports both unittest and pytest test files
 """
 
-import os
-import sys
 import argparse
 import glob
+import os
 import subprocess
+import sys
 import time
 from pathlib import Path
 

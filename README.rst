@@ -28,12 +28,36 @@ What is it ?
 
 The **fitter** package is a Python library used for fitting probability distributions to data. It provides a straightforward and and intuitive interface to estimate parameters for various types of distributions, both continuous and discrete. Using **fitter**, you can easily fit a range of distributions to your data and compare their fit, aiding in the selection of the most suitable distribution. The package is designed to be user-friendly and requires minimal setup, making it a useful tool for data scientists and statisticians working with probability distributions.
 
+## Running Tests
+
+To run the test suite for fitter, follow these steps:
+
+1. Clone the repository and install dev dependencies:
+   ```bash
+   git clone https://github.com/tg12/fitter
+   cd fitter
+   pip3 install -e ".[dev]"
+   ```
+
+2. Navigate to the tests directory:
+   ```bash
+   cd tests
+   ```
+
+3. Run the test suite using the provided test runner:
+   ```bash
+   python3 run_tests.py
+   ```
+
+The test runner automatically handles src directory structures and ensures proper import paths are configured.
+
+
 Installation
 ###################
 
 ::
-
-    pip install fitter
+    git clone https://github.com/tg12/fitter
+    pip install .
 
 **fitter** is also available on **conda** (bioconda channel)::
 
