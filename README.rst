@@ -37,6 +37,18 @@ Installation
     cd fitter
     pip install .
 
+Run Tests
+###################
+
+::
+
+    git clone https://github.com/tg12/fitter
+    cd fitter
+    pip3 install -e ".[dev]"
+    cd tests
+    python3 run_tests.py -v
+
+
 Usage
 ##################
 
