@@ -18,9 +18,9 @@ FITTER documentation
     :alt: Documentation Status
 
 .. image:: https://zenodo.org/badge/23078551.svg
-   :target: https://zenodo.org/badge/latestdoi/23078551
+    :target: https://zenodo.org/badge/latestdoi/23078551
 
-Compatible with Python 3.7, and 3.8, 3.9
+**Compatible with Python 3.7, 3.8, 3.9, and 3.10**
 
 
 # What is it ?
