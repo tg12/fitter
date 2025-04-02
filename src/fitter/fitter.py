@@ -200,7 +200,7 @@ class Fitter:
 
         #: list of distributions to test
         self.distributions = distributions
-        if self.distributions == None:
+        if self.distributions is None:
             self._load_all_distributions()
         elif self.distributions == "common":
             self.distributions = get_common_distributions()
@@ -210,11 +210,11 @@ class Fitter:
         self.bins = bins
 
         self._alldata = np.array(data)
-        if xmin == None:
+        if xmin is None:
             self._xmin = self._alldata.min()
         else:
             self._xmin = xmin
-        if xmax == None:
+        if xmax is None:
             self._xmax = self._alldata.max()
         else:
             self._xmax = xmax
@@ -249,7 +249,7 @@ class Fitter:
         return self._xmin
 
     def _set_xmin(self, value):
-        if value == None or value < self._alldata.min():
+        if value is None or value < self._alldata.min():
             value = self._alldata.min()
         self._xmin = value
         self._trim_data()
@@ -261,7 +261,7 @@ class Fitter:
         return self._xmax
 
     def _set_xmax(self, value):
-        if value == None or value > self._alldata.max():
+        if value is None or value > self._alldata.max():
             value = self._alldata.max()
         self._xmax = value
         self._trim_data()
@@ -304,7 +304,7 @@ class Fitter:
             pdf_fitted = dist.pdf(x, *param)
 
             # calculate error
-            sq_error = pylab.sum((pdf_fitted - y) ** 2)
+            sq_error = np.sum((pdf_fitted - y) ** 2)
 
             # calculate information criteria
             logLik = np.sum(dist.logpdf(x, *param))
@@ -315,7 +315,7 @@ class Fitter:
             # special case of gaussian distribution
             # bic = n * np.log(sq_error / n) + k * np.log(n)
             # general case:
-            bic = k * pylab.log(n) - 2 * logLik
+            bic = k * np.log(n) - 2 * logLik
 
             # calculate kullback leibler divergence
             kullback_leibler = kl_div(pdf_fitted, y)
@@ -407,7 +407,7 @@ class Fitter:
                 if name in self.fitted_pdf.keys():
                     pylab.plot(self.x, self.fitted_pdf[name], lw=lw, label=name)
                 else:  # pragma: no cover
-                    logger.warning("%s was not fitted. no parameters available" % name)
+                    logger.warning(f"{name} was not fitted. no parameters available")
         pylab.grid(True)
         pylab.legend()
 
@@ -446,7 +446,8 @@ class Fitter:
 
     @staticmethod
     def _with_timeout(func, args=(), kwargs={}, timeout=30):
-        with multiprocessing.pool.ThreadPool(1) as pool:
+        n_workers = multiprocessing.cpu_count() # Get number of available cores instead of hardcoding to 1
+        with multiprocessing.pool.ThreadPool(n_workers) as pool:
             async_result = pool.apply_async(func, args, kwargs)
             return async_result.get(timeout=timeout)
 

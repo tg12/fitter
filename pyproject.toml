@@ -71,8 +71,3 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
 fitter = "fitter.main:main"
-
-[tool.pytest.ini_options]
-testpaths = ["tests"]
-python_files = "test_*.py"
-addopts = "--cov=fitter --cov-report=term-missing"
