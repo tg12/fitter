@@ -1,5 +1,3 @@
-
-
 #############################
 FITTER documentation
 #############################
@@ -23,12 +21,12 @@ FITTER documentation
 **Compatible with Python 3.7, 3.8, 3.9, and 3.10**
 
 
-# What is it ?
+#What is it ?
 
 
 The **fitter** package is a Python library used for fitting probability distributions to data. It provides a straightforward and and intuitive interface to estimate parameters for various types of distributions, both continuous and discrete. Using **fitter**, you can easily fit a range of distributions to your data and compare their fit, aiding in the selection of the most suitable distribution. The package is designed to be user-friendly and requires minimal setup, making it a useful tool for data scientists and statisticians working with probability distributions.
 
-## Running Tests
+##Running Tests
 
 To run the test suite for fitter, follow these steps:
 
